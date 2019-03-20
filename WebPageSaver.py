@@ -20,14 +20,14 @@ class WebPageSaver:
         登录
         :return:
         '''
-        driver = webdriver.Firefox()
+        self.driver = webdriver.Firefox()
         cookies_file = 'cookie.pkl'
         if not os.path.exists(cookies_file):
-            driver.get('http://rs.xidian.edu.cn/forum.php')
+            self.driver.get('http://rs.xidian.edu.cn/forum.php')
             print('请在60s内登录成功')
             time.sleep(60)
             print('等待结束')
-            cookies = driver.get_cookies()
+            cookies = self.driver.get_cookies()
             print(cookies)
             with open(cookies_file, 'wb') as f:
                 pickle.dump(cookies, f)
@@ -38,8 +38,8 @@ class WebPageSaver:
                 print(cookies)
 
 
-        driver.get('http://rs.xidian.edu.cn/forum.php')
-        driver.delete_all_cookies()
+        self.driver.get('http://rs.xidian.edu.cn/forum.php')
+        self.driver.delete_all_cookies()
 
         for cookie in cookies:
             for k in {'name', 'value', 'domain', 'path', 'expiry'}:
@@ -47,31 +47,30 @@ class WebPageSaver:
                     if k == 'expiry':
                         t = time.time()
                         cookie[k] = int(t)  # 时间戳s
-            driver.add_cookie({k: cookie[k] for k in {'name', 'value', 'domain', 'path', 'expiry'}})
+            self.driver.add_cookie({k: cookie[k] for k in {'name', 'value', 'domain', 'path', 'expiry'}})
 
-        driver.get('http://rs.xidian.edu.cn/forum.php')
+        self.driver.get('http://rs.xidian.edu.cn/forum.php')
 
 
-    def saveWebPage(self, driver, url, dir_path=None):
+    def saveWebPage(self, url, dir_path=None):
         '''
         保存网页
-        :param driver: selenium.webdriver
         :param url: 网页url
         :param dir_path: 保存路径不支持中文及其他非英文语言
         :return: None
         '''
 
-        driver.get(url)
+        self.driver.get(url)
         time.sleep(1)
 
         # 滑到底部
         js = "window.scrollTo(0,document.body.scrollHeight)"
-        driver.execute_script(js)
+        self.driver.execute_script(js)
         time.sleep(1)
 
         # webdriver.ActionChains尝试失败
         # webdriver.ActionChains(drivo[er).key_down(Keys.CONTROL).send_keys("S").key_up(Keys.CONTROL).perform() #失败
-        # webdriver.ActionChains(driver).key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform() #成功
+        # webdriver.ActionChains(self.driver).key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform() #成功
 
         # 检查路径
         str = ""  # str为保存路径,受k.type_string()方法的限制，位置只能为英文
@@ -84,8 +83,8 @@ class WebPageSaver:
             print("path does not exist!->" + str + ' url:' + url)
             return
         # 检查是否有重名网页
-        if os.path.exists(str + driver.title + '.html'):
-            print('web page exists!->' + str + driver.title + '.html url:' + url)
+        if os.path.exists(str + self.driver.title + '.html'):
+            print('web page exists!->' + str + self.driver.title + '.html url:' + url)
             return
 
         # 实现ctrl s
@@ -101,21 +100,23 @@ class WebPageSaver:
         k.type_string(str)  # 只能是键盘上有的字母数字
         time.sleep(1)
         k.tap_key(k.enter_key)
-        print("saving web page: " + str + driver.title + ".html")
+        print("saving web page: " + str + self.driver.title + ".html")
 
         # 检查是否保存成功，若10s内未成功则退出
         for i in range(100):
             time.sleep(0.1)
-            if os.path.exists(str + driver.title + '.html'):
+            if os.path.exists(str + self.driver.title + '.html'):
                 print("saved successfully!")
                 break
         else:
-            print("save failly!->" + str + driver.title + '.html url:' + url)
+            print("save failly!->" + str + self.driver.title + '.html url:' + url)
+
+    def close_webdriver(self):
+        self.driver.close()
 
 
 if __name__ == '__main__':
     url = r"http://rs.xidian.edu.cn/forum.php?mod=viewthread&tid=979023"
     webpage_saver = WebPageSaver()
     webpage_saver.login()
-    # webpage_saver.saveWebPage(drive, url, dir_path="/home/ltxu/PycharmProjects/ruisiSpider/saved_pages")
-    # drive.close()
+    webpage_saver.saveWebPage(url, dir_path="/home/ltxu/PycharmProjects/ruisiSpider/saved_pages")
