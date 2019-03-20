@@ -12,8 +12,46 @@ from selenium.webdriver.common.keys import Keys
 import time
 import pykeyboard
 import os
+import pickle
 
 class WebPageSaver:
+    def login(self):
+        '''
+        登录
+        :return:
+        '''
+        driver = webdriver.Firefox()
+        cookies_file = 'cookie.pkl'
+        if not os.path.exists(cookies_file):
+            driver.get('http://rs.xidian.edu.cn/forum.php')
+            print('请在60s内登录成功')
+            time.sleep(60)
+            print('等待结束')
+            cookies = driver.get_cookies()
+            print(cookies)
+            with open(cookies_file, 'wb') as f:
+                pickle.dump(cookies, f)
+            print('cookies saved in '+cookies_file)
+        else:
+            with open(cookies_file, 'rb') as f:
+                cookies = pickle.load(f)
+                print(cookies)
+
+
+        driver.get('http://rs.xidian.edu.cn/forum.php')
+        driver.delete_all_cookies()
+
+        for cookie in cookies:
+            for k in {'name', 'value', 'domain', 'path', 'expiry'}:
+                if k not in list(cookie.keys()):
+                    if k == 'expiry':
+                        t = time.time()
+                        cookie[k] = int(t)  # 时间戳s
+            driver.add_cookie({k: cookie[k] for k in {'name', 'value', 'domain', 'path', 'expiry'}})
+
+        driver.get('http://rs.xidian.edu.cn/forum.php')
+
+
     def saveWebPage(self, driver, url, dir_path=None):
         '''
         保存网页
@@ -76,8 +114,8 @@ class WebPageSaver:
 
 
 if __name__ == '__main__':
-    drive = webdriver.Firefox()
     url = r"http://rs.xidian.edu.cn/forum.php?mod=viewthread&tid=979023"
     webpage_saver = WebPageSaver()
-    webpage_saver.saveWebPage(drive, url, dir_path="/home/ltxu/PycharmProjects/ruisiSpider/saved_pages")
-    drive.close()
+    webpage_saver.login()
+    # webpage_saver.saveWebPage(drive, url, dir_path="/home/ltxu/PycharmProjects/ruisiSpider/saved_pages")
+    # drive.close()
