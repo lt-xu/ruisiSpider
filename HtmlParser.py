@@ -10,7 +10,7 @@ from lxml import etree
 
 
 class HtmlParser:
-    def parser(self,page_url, html_cont):  #html_cont下载的网页内容
+    def parse_article(self,page_url, html_cont):  #html_cont下载的网页内容
         html = etree.HTML(html_cont)
         new_titles = []
         tbodys = html.xpath('//*[@id="threadlisttableid"]/tbody[contains(@id,"normalthread")]')
@@ -33,18 +33,31 @@ class HtmlParser:
 
         return new_titles
 
-
-
-
-
+    def parse_next_page(self,page_url,html_cont):
+        html = etree.HTML(html_cont)
+        pg = html.xpath('//div[@class="pg"]')[0]
+        nxt = pg.xpath('child::a[@class="nxt"]')
+        if nxt:
+            return 'http://rs.xidian.edu.cn/' + nxt[0].attrib['href']
+        else:
+            return None
 
 
 if __name__ == '__main__':
     from HtmlDownloader import HtmlDownloader
-    for i in range(1,5):
-        page_url = 'http://rs.xidian.edu.cn/forum.php?mod=forumdisplay&fid=560&page={}'.format(i)
+    # for i in range(1,5):
+    #     page_url = 'http://rs.xidian.edu.cn/forum.php?mod=forumdisplay&fid=560&page={}'.format(i)
+    #     html = HtmlDownloader().download(page_url)
+    #     test = HtmlParser()
+    #     new_titles = test.parser(page_url,html_cont=html)
+    #     print(new_titles)
+    page_url = 'http://rs.xidian.edu.cn/forum.php?mod=forumdisplay&fid=560&filter=author&orderby=dateline'
+    while True:
         html = HtmlDownloader().download(page_url)
         test = HtmlParser()
-        new_titles = test.parser(page_url,html_cont=html)
-        print(new_titles)
+        next_page = test.parse_next_page(page_url,html)
+        print(next_page)
+        page_url = next_page
+        if not next_page:
+            break
 
