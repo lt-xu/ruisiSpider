@@ -3,12 +3,11 @@
 @author: ltxu
 @file: WebPageSaver.py
 @time: 19-3-19 下午11:52
-@desc:
+@desc: 网页下载器
 '''
 
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import time
 import pykeyboard
 import os
@@ -17,9 +16,9 @@ import re
 
 import traceback
 
-DONE = 1  #保存成功
-FAIL = -1 #保存失败
-UNDO = 0  #中途退出
+DONE = 1  # 保存成功
+TIMEOUT = -1  # 保存超时
+FAIL = 0  # 各种原因保存前退出
 
 
 class WebPageSaver:
@@ -71,7 +70,7 @@ class WebPageSaver:
         保存网页
         :param url: 网页url
         :param dir_path: 保存路径不支持中文及其他非英文语言
-        :return: 成功保存返回DONE的值 各种原因中途退出返回UNDO的值 保存失败返回FAIL的值
+        :return: 成功保存返回DONE 各种原因中途退出返回FAIL 保存失败返回TIMEOUT
         '''
 
         try:
@@ -81,29 +80,15 @@ class WebPageSaver:
             # 滑到底部
             js = "window.scrollTo(0,document.body.scrollHeight)"
             self.driver.execute_script(js)
-            time.sleep(1)
+            time.sleep(0.2)
         except Exception as e:
             traceback.print_exc()
-            return UNDO
-
-        # webdriver.ActionChains尝试失败
-        # webdriver.ActionChains(drivo[er).key_down(Keys.CONTROL).send_keys("S").key_up(Keys.CONTROL).perform() #失败
-        # webdriver.ActionChains(self.driver).key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform() #成功
+            return FAIL
 
         # 检查路径
-        # str = ""  # str为保存路径,受k.type_string()方法的限制，位置只能为英文
-        # if dir_path:
-        #     if dir_path[-1] != "/":
-        #         dir_path += '/'
-        # str += dir_path
-
-        # if not os.path.isdir(dir_path):
-        #     print("此路径不是文件夹!->" + dir_path)
-        #     return UNDO
-
         if not re.fullmatch(r'^[A-Za-z0-9 _/.-]+$', dir_path):
             print('存储文件夹名称中只能包含英文字母 数字 "_" "." "-", 您的输入为:' + dir_path)
-            return UNDO
+            return FAIL
 
         # 检查文件夹是否存在
         if not os.path.exists(dir_path):
@@ -114,7 +99,7 @@ class WebPageSaver:
         # 检查是否有重名网页
         if os.path.exists(os.path.join(dir_path, self.driver.title + '.html')):
             print('网页已存在!->' + os.path.join(dir_path, self.driver.title + '.html') + ' url:' + url)
-            return UNDO
+            return FAIL
 
         try:
             # 实现ctrl s
@@ -135,17 +120,17 @@ class WebPageSaver:
             print("saving web page: " + os.path.join(str, self.driver.title + ".html"))
         except:
             traceback.print_exc()
-            return UNDO
+            return FAIL
 
         # 检查是否保存成功，若30s内未成功则退出
-        for i in range(300):
-            time.sleep(0.1)
+        for i in range(30):
+            time.sleep(1)
             if os.path.exists(os.path.join(str, self.driver.title + ".html")):
                 print("保存成功!")
                 return DONE
         else:
             print("30s内未保存成功!->" + str + self.driver.title + '.html url:' + url)
-            return FAIL
+            return TIMEOUT
 
 
 
@@ -154,7 +139,7 @@ class WebPageSaver:
 
 
 if __name__ == '__main__':
-    url = r"http://rs.xidian.edu.cn/forum.php?mod=viewthread&tid=979023"
+    url = ""
     webpage_saver = WebPageSaver()
     # webpage_saver.login()
     status = webpage_saver.saveWebPage(url, dir_path="/home/ltxu/PycharmProjects/ruisiSpider/test")

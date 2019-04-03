@@ -3,7 +3,7 @@
 @author: ltxu
 @file: HtmlParser.py
 @time: 19-3-20 下午10:05
-@desc:
+@desc:   网页分析器
 '''
 
 from lxml import etree
@@ -11,6 +11,12 @@ from lxml import etree
 
 class HtmlParser:
     def parse_article(self,page_url, html_cont):  #html_cont下载的网页内容
+        '''
+
+        :param page_url:
+        :param html_cont:
+        :return:
+        '''
         html = etree.HTML(html_cont)
         new_titles = []
         tbodys = html.xpath('//*[@id="threadlisttableid"]/tbody[contains(@id,"normalthread")]')
@@ -23,7 +29,7 @@ class HtmlParser:
             author = tbody.xpath('.//tr/td[@class="by"]/cite/a')[0].text
 
             span = tbody.xpath('.//tr/td[@class="by"]/em/span')[0]
-            if span.xpath('child::*'):     #最近发布的文章,会如此显示:<span><span title="2019-3-18">前天&nbsp;17:26</span></span>
+            if span.xpath('child::*'):     # 最近发布的文章,会如此显示:<span><span title="2019-3-18">前天&nbsp;17:26</span></span>
                 time = span.xpath('./span')[0].attrib['title']
             else:
                 time = span.text
@@ -33,7 +39,13 @@ class HtmlParser:
 
         return new_titles
 
-    def parse_next_page(self,page_url,html_cont):
+    def parse_next_page(self, page_url, html_cont):
+        '''
+
+        :param page_url:
+        :param html_cont:
+        :return:
+        '''
         html = etree.HTML(html_cont)
         pg = html.xpath('//div[@class="pg"]')[0]
         nxt = pg.xpath('child::a[@class="nxt"]')
@@ -45,13 +57,7 @@ class HtmlParser:
 
 if __name__ == '__main__':
     from HtmlDownloader import HtmlDownloader
-    # for i in range(1,5):
-    #     page_url = 'http://rs.xidian.edu.cn/forum.php?mod=forumdisplay&fid=560&page={}'.format(i)
-    #     html = HtmlDownloader().download(page_url)
-    #     test = HtmlParser()
-    #     new_titles = test.parser(page_url,html_cont=html)
-    #     print(new_titles)
-    page_url = 'http://rs.xidian.edu.cn/forum.php?mod=forumdisplay&fid=560&filter=author&orderby=dateline'
+    page_url = ''
     while True:
         html = HtmlDownloader().download(page_url)
         test = HtmlParser()

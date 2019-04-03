@@ -19,11 +19,19 @@ class URLManager(object):
         return self.new_urls_size()!=0
     def get_new_url(self):
         new_url = self.new_urls.pop()
-        m = hashlib.md5()
-        m.update(new_url.encode(encoding="utf-8"))
-        new_url_md5 = m.hexdigest()[8:-8]
-        self.old_urls.add(new_url_md5)
+        # m = hashlib.md5()
+        # m.update(new_url.encode(encoding="utf-8"))
+        # new_url_md5 = m.hexdigest()[8:-8]
+        # self.old_urls.add(new_url_md5)
         return new_url
+    def add_old_url(self, url):
+        if url is None:
+            return
+        m = hashlib.md5()
+        m.update(url.encode(encoding="utf-8"))
+        url_md5 = m.hexdigest()[8:-8]
+        self.old_urls.add(url_md5)
+
     def add_new_url(self,url):
         if url is None:
             return
